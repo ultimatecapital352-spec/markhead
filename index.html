@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Pembukaan Toko & Marketing</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f5f7;--sf:#fff;--ink:#14213d;--mut:#5b6678;--ln:#dde3ea;--ac:#0f766e;--ac2:#d98e04;--bad:#b42318;--ok:#157f3b}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1623;--sf:#16202f;--ink:#e8edf4;--mut:#97a3b6;--ln:#26334a;--ac:#2dd4bf;--ac2:#f5b73b;--bad:#f97066;--ok:#4ade80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+header{padding:20px 24px 0;max-width:1200px;margin:auto}
+h1{font-size:22px;margin:0 0 2px;font-weight:600}
+.sub{color:var(--mut);margin:0 0 14px}
+nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--ln)}
+nav button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mut);padding:10px 14px;font:inherit;cursor:pointer;white-space:nowrap}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--ac);font-weight:600}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+main{max-width:1200px;margin:auto;padding:20px 24px 60px}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:14px}
+.two{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:16px;min-width:0}
+.card h2{font-size:15px;margin:0 0 12px;font-weight:600}
+.kpi b{display:block;font-size:26px;font-weight:600;line-height:1.2}
+.kpi span{color:var(--mut);font-size:13px}
+.bar{height:8px;background:var(--ln);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ac)}
+.bar i.warn{background:var(--ac2)}.bar i.bad{background:var(--bad)}
+.chart{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:8px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:12px;color:var(--mut)}
+.pair{display:flex;align-items:flex-end;gap:3px;width:100%;flex:1;justify-content:center}
+.pair i{width:38%;max-width:26px;border-radius:3px 3px 0 0;background:var(--ac)}
+.pair i.t{background:var(--ln)}
+.legend{font-size:12px;color:var(--mut);margin-top:8px}
+.legend s{display:inline-block;width:10px;height:10px;background:var(--ln);margin:0 4px 0 0;text-decoration:none}
+.legend s.a{background:var(--ac);margin-left:10px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--ln);vertical-align:middle}
+th{color:var(--mut);font-weight:500;font-size:13px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;padding:1px 9px;border-radius:10px;font-size:12px;border:1px solid var(--ln)}
+.tag.Buka,.tag.Berjalan{color:var(--ok);border-color:var(--ok)}
+.tag.Renovasi,.tag.Persiapan,.tag.Perencanaan{color:var(--ac2);border-color:var(--ac2)}
+.tag.Disetujui,.tag.Cetak,.tag.Terkirim,.tag.Selesai{color:var(--ok);border-color:var(--ok)}
+.tag.Desain,.tag.Revisi,.tag.Brief{color:var(--ac2);border-color:var(--ac2)}
+.tag.Tertunda{color:var(--bad);border-color:var(--bad)}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px}
+label{display:flex;flex-direction:column;font-size:13px;color:var(--mut);gap:3px}
+input,select{font:inherit;padding:8px;border:1px solid var(--ln);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+.btn{font:inherit;padding:9px 14px;border:0;border-radius:6px;background:var(--ac);color:#fff;cursor:pointer;font-weight:500}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .btn{color:#06201d}}
+.lnk{background:none;border:0;color:var(--bad);cursor:pointer;font:inherit;padding:0}
+.hint{color:var(--mut);font-size:13px;margin-top:10px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.top .btn.sec{background:none;border:1px solid var(--ln);color:var(--ink)}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><div><h1>Dashboard Pembukaan Toko & Marketing</h1>
+  <p class="sub">Pantauan bersama: Head Management, Head Digital Marketing, Head Marketing Komunikasi</p></div>
+  <button class="btn sec" id="reset">Kembalikan data contoh</button></div>
+  <nav role="tablist" id="tabs"></nav>
+</header>
+<main id="view"></main>
+
+<script>
+const KEY='dash-toko-v1';
+const BULAN=['Mei','Jun','Jul','Agu','Sep','Okt'];
+const seed=()=>({
+ stores:[
+  {id:1,nama:'Toko Bandung Dago',kota:'Bandung',buka:'2026-11-15',status:'Renovasi',progres:70,budget:850,realisasi:610,pic:'Rina'},
+  {id:2,nama:'Toko Jakarta Kemang',kota:'Jakarta',buka:'2026-12-05',status:'Persiapan',progres:40,budget:1200,realisasi:420,pic:'Dimas'},
+  {id:3,nama:'Toko Surabaya Darmo',kota:'Surabaya',buka:'2027-01-20',status:'Perencanaan',progres:15,budget:950,realisasi:90,pic:'Wulan'},
+  {id:4,nama:'Toko Bogor Pajajaran',kota:'Bogor',buka:'2026-09-10',status:'Buka',progres:100,budget:700,realisasi:688,pic:'Agus'}],
+ sales:[
+  ...[[420,450],[455,470],[480,500],[510,520],[560,560],[590,600]].map((v,i)=>({bulan:BULAN[i],toko:'Toko Existing (gabungan)',omset:v[0],target:v[1]})),
+  {bulan:'Sep',toko:'Toko Bogor Pajajaran',omset:95,target:120},{bulan:'Okt',toko:'Toko Bogor Pajajaran',omset:140,target:150}],
+ prints:[
+  {id:1,item:'Spanduk Grand Opening 4x1 m',toko:'Toko Bandung Dago',qty:2,vendor:'Percetakan Maju Jaya',deadline:'2026-11-08',status:'Cetak',biaya:3},
+  {id:2,item:'Brosur A5 promo pembukaan',toko:'Toko Bandung Dago',qty:5000,vendor:'Percetakan Maju Jaya',deadline:'2026-11-10',status:'Disetujui',biaya:12},
+  {id:3,item:'X-Banner & standing banner',toko:'Toko Jakarta Kemang',qty:10,vendor:'Cipta Display',deadline:'2026-11-28',status:'Revisi',biaya:4},
+  {id:4,item:'Voucher diskon & kartu ucapan',toko:'Toko Jakarta Kemang',qty:1000,vendor:'Cipta Display',deadline:'2026-12-01',status:'Desain',biaya:6},
+  {id:5,item:'Poster A2 untuk etalase',toko:'Toko Surabaya Darmo',qty:30,vendor:'-',deadline:'2027-01-05',status:'Brief',biaya:2}],
+ programs:[
+  {id:1,owner:'digital',nama:'Iklan Meta & Google - Grand Opening Bandung',channel:'Paid Ads',budget:120,spend:70,mulai:'2026-10-20',selesai:'2026-11-30',status:'Berjalan',kpi:'Target 1.500 leads, tercapai 820'},
+  {id:2,owner:'digital',nama:'Kolaborasi Influencer Jakarta',channel:'Influencer',budget:90,spend:15,mulai:'2026-11-15',selesai:'2026-12-20',status:'Persiapan',kpi:'Target jangkauan 2 juta'},
+  {id:3,owner:'digital',nama:'SEO & Google Business Profile semua toko',channel:'SEO / Local',budget:40,spend:28,mulai:'2026-09-01',selesai:'2026-12-31',status:'Berjalan',kpi:'Target +30% pencarian "dekat saya"'},
+  {id:4,owner:'komunikasi',nama:'Press Release & Media Gathering Bandung',channel:'PR / Media',budget:60,spend:22,mulai:'2026-11-01',selesai:'2026-11-15',status:'Persiapan',kpi:'Target 15 liputan media'},
+  {id:5,owner:'komunikasi',nama:'Event Grand Opening & Branding Toko',channel:'Event / Outdoor',budget:150,spend:95,mulai:'2026-11-10',selesai:'2026-11-17',status:'Berjalan',kpi:'Target 2.000 pengunjung hari pertama'},
+  {id:6,owner:'komunikasi',nama:'Komunikasi Komunitas & Pelanggan Loyal',channel:'CRM / Komunitas',budget:35,spend:35,mulai:'2026-09-15',selesai:'2026-10-15',status:'Selesai',kpi:'Tercapai 640 anggota baru'}]
+});
+let D;
+try{D=JSON.parse(localStorage.getItem(KEY))||seed()}catch(e){D=seed()}
+if(!D.prints)D.prints=seed().prints;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const jt=n=>'Rp '+Number(n).toLocaleString('id-ID')+' jt';
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+const tone=p=>p>=90?'':p>=60?'warn':'bad';
+const bar=(p,t)=>`<div class="bar" role="img" aria-label="${p}%"><i class="${t===undefined?'':t}" style="width:${Math.min(p,100)}%"></i></div>`;
+const tglID=d=>d?new Date(d+'T00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'-';
+
+const TABS=[['ringkasan','Ringkasan Manajemen'],['toko','Toko Baru'],['omset','Omset'],['digital','Marketing Digital'],['komunikasi','Marketing Komunikasi']];
+function tabs(cur){$('#tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${k===cur}" data-k="${k}">${l}</button>`).join('')}
+$('#tabs').onclick=e=>{const k=e.target.dataset.k;if(k)location.hash=k};
+
+function monthly(){return BULAN.map(b=>{const r=D.sales.filter(s=>s.bulan===b);return{b,omset:r.reduce((a,s)=>a+s.omset,0),target:r.reduce((a,s)=>a+s.target,0)}})}
+function chart(m){const mx=Math.max(...m.map(x=>Math.max(x.omset,x.target)),1);
+ return `<div class="chart">${m.map(x=>`<div class="col"><div class="pair"><i class="t" style="height:${x.target/mx*100}%" title="Target ${jt(x.target)}"></i><i style="height:${x.omset/mx*100}%" title="Omset ${jt(x.omset)}"></i></div>${x.b}</div>`).join('')}</div><div class="legend"><s></s>Target<s class="a"></s>Omset (juta Rp)</div>`}
+
+const STG=['Brief','Desain','Revisi','Disetujui','Cetak','Terkirim'];
+const hari=d=>Math.ceil((new Date(d+'T00:00')-new Date(new Date().toDateString()))/864e5);
+function printSec(){const L=D.prints,tot=L.reduce((a,p)=>a+p.biaya,0),done=L.filter(p=>p.status==='Terkirim').length;
+ return `<div class="card" style="margin-top:14px"><h2>Persiapan cetakan</h2><p class="hint" style="margin:0 0 10px">${done} dari ${L.length} item sudah terkirim ke toko · total biaya ${jt(tot)}</p>
+ <div class="wrap"><table><thead><tr><th>Item cetakan</th><th>Untuk toko</th><th class="n">Jumlah</th><th>Vendor</th><th>Tenggat</th><th>Tahap</th><th style="min-width:110px">Progres</th><th class="n">Biaya</th><th></th></tr></thead><tbody>${L.map(p=>{const pr=Math.round(STG.indexOf(p.status)/(STG.length-1)*100),h=hari(p.deadline),late=p.status!=='Terkirim'&&h<=3;
+ return `<tr><td>${esc(p.item)}</td><td>${esc(p.toko)}</td><td class="n">${p.qty.toLocaleString('id-ID')}</td><td>${esc(p.vendor)}</td><td>${tglID(p.deadline)}${p.status==='Terkirim'?'':`<br><small style="color:${late?'var(--bad)':'var(--mut)'}">${h<0?'terlambat '+(-h)+' hari':h===0?'hari ini':'H-'+h}</small>`}</td><td><select data-ps="${p.id}">${STG.map(x=>`<option ${x===p.status?'selected':''}>${x}</option>`).join('')}</select></td><td>${bar(pr,late?'bad':'')}</td><td class="n">${jt(p.biaya)}</td><td><button class="lnk" data-del-c="${p.id}">Hapus</button></td></tr>`}).join('')||'<tr><td colspan="9">Belum ada item cetakan.</td></tr>'}</tbody></table></div>
+ <p class="hint">Tahap: Brief → Desain → Revisi → Disetujui → Cetak → Terkirim. Item yang tenggatnya 3 hari lagi dan belum terkirim ditandai merah.</p>
+ <form id="f-print"><label>Item cetakan<input name="item" required></label><label>Untuk toko<input name="toko" list="tk2" required><datalist id="tk2">${D.stores.map(s=>`<option>${esc(s.nama)}`).join('')}</datalist></label><label>Jumlah<input type="number" name="qty" min="1" required></label><label>Vendor<input name="vendor"></label><label>Tenggat<input type="date" name="deadline" required></label><label>Biaya (juta Rp)<input type="number" name="biaya" min="0" value="0"></label><button class="btn">Tambah cetakan</button></form></div>`}
+function progTable(list){return `<div class="wrap"><table><thead><tr><th>Program</th><th>Channel</th><th>Periode</th><th>Status</th><th class="n">Anggaran</th><th style="min-width:130px">Terserap</th><th>KPI</th><th></th></tr></thead><tbody>${list.map(p=>{const s=pct(p.spend,p.budget);return `<tr><td>${esc(p.nama)}</td><td>${esc(p.channel)}</td><td>${tglID(p.mulai)} – ${tglID(p.selesai)}</td><td><span class="tag ${p.status}">${p.status}</span></td><td class="n">${jt(p.budget)}</td><td>${bar(s,s>100?'bad':'')}<small>${jt(p.spend)} (${s}%)</small></td><td>${esc(p.kpi)}</td><td><button class="lnk" data-del-p="${p.id}">Hapus</button></td></tr>`}).join('')||'<tr><td colspan="8">Belum ada program. Tambahkan lewat form di bawah.</td></tr>'}</tbody></table></div>`}
+
+function views(k){
+ const m=monthly(),last=m[m.length-1],tb=D.stores.reduce((a,s)=>a+s.budget,0),tr=D.stores.reduce((a,s)=>a+s.realisasi,0);
+ const pb=D.programs.reduce((a,p)=>a+p.budget,0),ps=D.programs.reduce((a,p)=>a+p.spend,0);
+ if(k==='ringkasan')return `<div class="grid kpis">
+  <div class="card kpi"><b>${jt(last.omset)}</b><span>Omset ${last.b} · ${pct(last.omset,last.target)}% dari target</span></div>
+  <div class="card kpi"><b>${D.stores.filter(s=>s.status==='Buka').length} / ${D.stores.length}</b><span>Toko sudah buka</span></div>
+  <div class="card kpi"><b>${pct(tr,tb)}%</b><span>Anggaran pembukaan toko terpakai (${jt(tr)})</span></div>
+  <div class="card kpi"><b>${pct(ps,pb)}%</b><span>Anggaran marketing terserap (${jt(ps)})</span></div></div>
+  <div class="grid two"><div class="card"><h2>Omset vs target 6 bulan terakhir</h2>${chart(m)}</div>
+  <div class="card"><h2>Progres pembukaan toko</h2>${D.stores.map(s=>`<div style="margin-bottom:12px"><div class="top"><span>${esc(s.nama)}</span><span class="tag ${s.status}">${s.status}</span></div>${bar(s.progres,s.progres>=60||s.status==='Buka'?'':'warn')}<small class="sub">Rencana buka ${tglID(s.buka)} · ${s.progres}%</small></div>`).join('')}</div>
+  <div class="card"><h2>Marketing Digital</h2>${D.programs.filter(p=>p.owner==='digital').map(p=>`<div style="margin-bottom:10px">${esc(p.nama)} <span class="tag ${p.status}">${p.status}</span></div>`).join('')||'-'}</div>
+  <div class="card"><h2>Marketing Komunikasi</h2>${D.programs.filter(p=>p.owner==='komunikasi').map(p=>`<div style="margin-bottom:10px">${esc(p.nama)} <span class="tag ${p.status}">${p.status}</span></div>`).join('')||'-'}</div></div>`;
+ if(k==='toko')return `<div class="card"><h2>Daftar toko baru</h2><div class="wrap"><table><thead><tr><th>Toko</th><th>Kota</th><th>Rencana buka</th><th>Status</th><th style="min-width:140px">Progres</th><th class="n">Budget</th><th class="n">Realisasi</th><th>PIC</th><th></th></tr></thead><tbody>${D.stores.map(s=>`<tr><td>${esc(s.nama)}</td><td>${esc(s.kota)}</td><td>${tglID(s.buka)}</td><td><select data-st="${s.id}">${['Perencanaan','Persiapan','Renovasi','Buka','Tertunda'].map(x=>`<option ${x===s.status?'selected':''}>${x}</option>`).join('')}</select></td><td><input type="number" min="0" max="100" value="${s.progres}" data-pr="${s.id}" style="width:70px"> %</td><td class="n">${jt(s.budget)}</td><td class="n">${jt(s.realisasi)}</td><td>${esc(s.pic)}</td><td><button class="lnk" data-del-s="${s.id}">Hapus</button></td></tr>`).join('')}</tbody></table></div>
+  <form id="f-store"><label>Nama toko<input name="nama" required></label><label>Kota<input name="kota" required></label><label>Rencana buka<input type="date" name="buka" required></label><label>Budget (juta Rp)<input type="number" name="budget" min="0" required></label><label>PIC<input name="pic"></label><button class="btn">Tambah toko</button></form></div>`;
+ if(k==='omset'){const per={};D.sales.forEach(s=>{per[s.toko]=per[s.toko]||{o:0,t:0};per[s.toko].o+=s.omset;per[s.toko].t+=s.target});
+  return `<div class="grid two"><div class="card"><h2>Omset vs target per bulan</h2>${chart(m)}</div><div class="card"><h2>Pencapaian per toko</h2>${Object.entries(per).map(([n,v])=>{const p=pct(v.o,v.t);return `<div style="margin-bottom:12px">${esc(n)} · ${p}%${bar(p,tone(p))}<small class="sub">${jt(v.o)} dari target ${jt(v.t)}</small></div>`}).join('')}</div></div>
+  <div class="card" style="margin-top:14px"><h2>Input omset</h2><form id="f-sales"><label>Bulan<select name="bulan">${BULAN.map(b=>`<option>${b}</option>`).join('')}</select></label><label>Toko<input name="toko" list="tk" required><datalist id="tk">${[...new Set(D.sales.map(s=>s.toko))].map(t=>`<option>${esc(t)}`).join('')}${D.stores.map(s=>`<option>${esc(s.nama)}`).join('')}</datalist></label><label>Omset (juta Rp)<input type="number" name="omset" min="0" required></label><label>Target (juta Rp)<input type="number" name="target" min="0" required></label><button class="btn">Simpan omset</button></form>
+  <div class="wrap" style="margin-top:14px"><table><thead><tr><th>Bulan</th><th>Toko</th><th class="n">Omset</th><th class="n">Target</th><th class="n">Capaian</th><th></th></tr></thead><tbody>${D.sales.map((s,i)=>`<tr><td>${s.bulan}</td><td>${esc(s.toko)}</td><td class="n">${jt(s.omset)}</td><td class="n">${jt(s.target)}</td><td class="n">${pct(s.omset,s.target)}%</td><td><button class="lnk" data-del-o="${i}">Hapus</button></td></tr>`).join('')}</tbody></table></div></div>`}
+ const own=k, list=D.programs.filter(p=>p.owner===own), b=list.reduce((a,p)=>a+p.budget,0), s=list.reduce((a,p)=>a+p.spend,0);
+ return `<div class="grid kpis"><div class="card kpi"><b>${list.filter(p=>p.status==='Berjalan').length}</b><span>Program berjalan dari ${list.length} program</span></div><div class="card kpi"><b>${jt(b)}</b><span>Total anggaran</span></div><div class="card kpi"><b>${pct(s,b)}%</b><span>Terserap (${jt(s)})</span></div></div>
+ <div class="card"><h2>Program ${own==='digital'?'Marketing Digital':'Marketing Komunikasi'}</h2>${progTable(list)}
+ <form id="f-prog" data-owner="${own}"><label>Nama program<input name="nama" required></label><label>Channel<input name="channel" required></label><label>Mulai<input type="date" name="mulai" required></label><label>Selesai<input type="date" name="selesai" required></label><label>Anggaran (juta Rp)<input type="number" name="budget" min="0" required></label><label>Terpakai (juta Rp)<input type="number" name="spend" min="0" value="0"></label><label>Status<select name="status">${['Perencanaan','Persiapan','Berjalan','Selesai','Tertunda'].map(x=>`<option>${x}</option>`).join('')}</select></label><label>Target / KPI<input name="kpi"></label><button class="btn">Tambah program</button></form></div>${own==='digital'?printSec():''}`;
+}
+
+function render(){const k=TABS.some(t=>t[0]===location.hash.slice(1))?location.hash.slice(1):'ringkasan';tabs(k);$('#view').innerHTML=views(k)}
+window.onhashchange=render;
+const num=v=>Number(v)||0;
+document.addEventListener('submit',e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target)),id=e.target.id;
+ if(id==='f-store')D.stores.push({id:Date.now(),nama:f.nama,kota:f.kota,buka:f.buka,status:'Perencanaan',progres:0,budget:num(f.budget),realisasi:0,pic:f.pic||'-'});
+ if(id==='f-print')D.prints.push({id:Date.now(),item:f.item,toko:f.toko,qty:num(f.qty),vendor:f.vendor||'-',deadline:f.deadline,status:'Brief',biaya:num(f.biaya)});
+ if(id==='f-sales')D.sales.push({bulan:f.bulan,toko:f.toko,omset:num(f.omset),target:num(f.target)});
+ if(id==='f-prog')D.programs.push({id:Date.now(),owner:e.target.dataset.owner,nama:f.nama,channel:f.channel,budget:num(f.budget),spend:num(f.spend),mulai:f.mulai,selesai:f.selesai,status:f.status,kpi:f.kpi||'-'});
+ save();render()});
+document.addEventListener('click',e=>{const d=e.target.dataset;
+ if(d.delS){D.stores=D.stores.filter(s=>s.id!=d.delS)}else if(d.delP){D.programs=D.programs.filter(p=>p.id!=d.delP)}else if(d.delC){D.prints=D.prints.filter(p=>p.id!=d.delC)}else if(d.delO!==undefined){D.sales.splice(+d.delO,1)}else return;
+ save();render()});
+document.addEventListener('change',e=>{const d=e.target.dataset;
+ if(d.ps){D.prints.find(p=>p.id==d.ps).status=e.target.value}else if(d.st){D.stores.find(s=>s.id==d.st).status=e.target.value}else if(d.pr){D.stores.find(s=>s.id==d.pr).progres=Math.max(0,Math.min(100,num(e.target.value)))}else return;
+ save();render()});
+$('#reset').onclick=()=>{if(confirm('Semua data akan diganti dengan data contoh. Lanjutkan?')){D=seed();save();render()}};
+render();
+</script>
+</body>
+</html>
